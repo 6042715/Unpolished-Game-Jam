@@ -24,6 +24,7 @@ public class GenerateMap : MonoBehaviour
     private AudioSource audioSource;
     public bool shouldGenerate = true;
     public bool generated = false;
+    public int layersGenerated = 0;
 
     void Start()
     {
@@ -198,9 +199,11 @@ public class GenerateMap : MonoBehaviour
 
             }
 
-            if (y % 3 == 0)
+            if (y % 2 == 0)
             {
                 Debug.Log("Layer: " + y + " done generating!");
+
+                layersGenerated = y;
 
                 yield return new WaitForFixedUpdate();
             }

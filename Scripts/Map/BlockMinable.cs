@@ -41,6 +41,7 @@ public class BlockMinable : MonoBehaviour
     private bool isPlayerNear;
     private bool shouldRender = false;
     private itemTextureHolder textureHolder;
+    public bool isWoodBroken = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
@@ -283,6 +284,21 @@ public class BlockMinable : MonoBehaviour
 
                     if (TSname == "Wood")
                     {
+                        if (isWoodBroken)
+                        {
+                            if (UnityEngine.Random.Range(0, 5) == 3)
+                            {
+                                int itemID = UnityEngine.Random.Range(-100000, -100);
+
+                                playerSCR.AddToInventory("" + "Rotten Wood", weight / 2f, itemID, textureHolder.itemTextures[11]);
+                            }
+                            if (UnityEngine.Random.Range(0, 500) == 21)
+                            {
+                                int itemID = UnityEngine.Random.Range(-100000, -100);
+
+                                playerSCR.AddToInventory("**** Mister Termite", 0.001f, itemID, textureHolder.itemTextures[12]);
+                            }
+                        }
                         if (gameObject.transform.childCount > 0)
                         {
                             Transform childTR = gameObject.transform.GetChild(0);

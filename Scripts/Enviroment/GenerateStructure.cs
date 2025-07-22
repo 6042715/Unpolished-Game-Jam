@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -26,6 +27,8 @@ public class GenerateStructure : MonoBehaviour
     public int minHouseWidth = 5;
 
     public int doorHouseHeight = 1;
+
+    private bool isHouseAbon = false;
 
     public Vector2 detectorSize = new Vector2(0.25f, 0.25f);
 
@@ -57,6 +60,11 @@ public class GenerateStructure : MonoBehaviour
     {
         if (type == "house")
         {
+            if (Random.Range(0, 15) == 4)
+            {
+                isHouseAbon = true;
+            }
+
             GameObject House = new GameObject("House");
             houseSource = House.AddComponent<AudioSource>();
             houseSource.volume = 0.5f;
@@ -135,6 +143,35 @@ public class GenerateStructure : MonoBehaviour
                 {
                     Vector2 destroyPos = new Vector2(testT.x + x, testT.y - y);
                     RemoveStone(destroyPos, detectorSize);
+                }
+            }
+
+            if (isHouseAbon)
+            {
+                int totalAmount = House.transform.childCount;
+                int amountToDestroy = Random.Range(0, totalAmount - 4);
+
+                for (int i = 0; i < amountToDestroy; i++)
+                {
+                    Destroy(House.transform.GetChild(Random.Range(0, House.transform.childCount)).gameObject);
+                }
+
+                foreach (Transform child in House.transform)
+                {
+                    SpriteRenderer SPR = child.GetComponent<SpriteRenderer>();
+
+                    float brightness = Random.Range(-0.1f, 0f);
+                    SPR.color = new Color(SPR.color.r + brightness, SPR.color.g + brightness, SPR.color.b + brightness);
+
+                    if (Random.Range(0, 3) == 2)
+                    {
+                        Vector3 euler = child.transform.rotation.eulerAngles;
+                        euler.z += Random.Range(-10f, 10f);
+                        child.transform.rotation = Quaternion.Euler(euler);
+                    }
+
+                    child.gameObject.GetComponent<BlockMinable>().isWoodBroken = true;
+                    
                 }
             }
 
