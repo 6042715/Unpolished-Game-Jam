@@ -3,19 +3,24 @@ using Unity.Mathematics;
 using UnityEngine;
 using System.Collections;
 using System;
+using UnityEngine.UI;
 
 public class Crafter : MonoBehaviour
 {
     private FullInventory inventory;
+    private Recipes recipe;
     public List<GameObject> items = new List<GameObject>();
     public List<string> itemNames = new List<string>();
     public List<string> realNames = new List<string>();
     public List<string> nameArr = new List<string>();
     private Movement_player _Player;
+    public GameObject recipePRholder;
+    public GameObject confirmCraftHolder;
+    private Button confirmButton;
 
 
     private float bobSpeed = 2f;
-    private float bobHeight = 0.5f; 
+    private float bobHeight = 0.5f;
     private float baseY;
     private Vector2 baseScale;
 
@@ -24,26 +29,31 @@ public class Crafter : MonoBehaviour
     {
         _Player = FindFirstObjectByType<Movement_player>();
         inventory = FindFirstObjectByType<FullInventory>();
+        recipe = FindFirstObjectByType<Recipes>();
+
+        confirmButton = confirmCraftHolder.GetComponent<Button>();
 
         baseY = transform.localPosition.y;
         baseScale = transform.localScale;
+
+        confirmButton.onClick.AddListener(ConfirmCraft);
     }
 
-    void Update()
-    {
-        if (inventory.craftMode)
-        {
-            float newY = baseY + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
-            transform.localPosition = Vector2.Lerp(transform.position, new Vector2(transform.localPosition.x, newY), Time.deltaTime * 4f);
-            transform.localScale = Vector2.Lerp(transform.localScale, new Vector2(newY, newY), Time.deltaTime * 2f);
-        }
-        else
-        {
-            transform.localPosition = new Vector2(transform.localPosition.x, Mathf.Lerp(transform.localPosition.y, baseY, Time.deltaTime * 4f));
-            transform.localScale = Vector2.Lerp(transform.localScale, baseScale, Time.deltaTime * 2f);
-        }
-    
-    }
+    // void Update()
+    // {
+    //     if (inventory.craftMode)
+    //     {
+    //         float newY = baseY + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
+    //         transform.localPosition = Vector2.Lerp(transform.position, new Vector2(transform.localPosition.x, newY), Time.deltaTime * 4f);
+    //         transform.localScale = Vector2.Lerp(transform.localScale, new Vector2(newY, newY), Time.deltaTime * 2f);
+    //     }
+    //     else
+    //     {
+    //         transform.localPosition = new Vector2(transform.localPosition.x, Mathf.Lerp(transform.localPosition.y, baseY, Time.deltaTime * 4f));
+    //         transform.localScale = Vector2.Lerp(transform.localScale, baseScale, Time.deltaTime * 2f);
+    //     }
+
+    // }
 
     public void StrippedAdd(GameObject GOB)
     {
@@ -94,21 +104,46 @@ public class Crafter : MonoBehaviour
 
             realNames.Add(newName);
             Debug.Log("Trimmed name: " + newName);
+
+            test1();
+        }
+        else
+        {
+            realNames.Add(name);
+            test1();
         }
 
 
 
     }
+    // public void DefaultRemove(GameObject GOB)
+    // {
+    //     if (inventory.craftMode == true)
+    //     {
+    //         int indexID = items.IndexOf(GOB);
+    //         items.Remove(GOB);
+    //         itemNames.RemoveAt(indexID);
+    //         realNames.RemoveAt(indexID);
+    //     }
+    // }
     public void DefaultRemove(GameObject GOB)
     {
         if (inventory.craftMode == true)
         {
             int indexID = items.IndexOf(GOB);
-            items.Remove(GOB);
-            itemNames.RemoveAt(indexID);
-            realNames.RemoveAt(indexID);
+            if (indexID >= 0)
+            {
+                items.RemoveAt(indexID);
+                itemNames.RemoveAt(indexID);
+                realNames.RemoveAt(indexID);
+            }
+            else
+            {
+                Debug.LogWarning("DefaultRemove called with GameObject not in items list.");
+            }
         }
     }
+
     public void ResetAll()
     {
         items.Clear();
@@ -144,8 +179,123 @@ public class Crafter : MonoBehaviour
             inventory.craftMode = false;
             Debug.ClearDeveloperConsole();
             Debug.Log("craft off");
-            
+
         }
+    }
+
+    private void test1()
+    {
+        foreach (Transform child in recipePRholder.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        {
+            inventory.SetCrafterPreview(null);
+            inventory.SetCrafterVisibility(false);
+        }
+
+        GameObject Result = recipe.CheckRecipe();
+
+        if (Result != null)
+        {
+            SpriteRenderer image = Result.GetComponentInChildren<SpriteRenderer>();
+            if (image != null)
+            {
+                inventory.SetCrafterPreview(image.sprite);
+                inventory.SetCrafterVisibility(true);
+
+                Result.transform.SetParent(recipePRholder.transform);
+                Debug.Log(Result);
+            }
+            else
+            {
+                Debug.LogWarning("Result has no SpriteRenderer component.");
+                inventory.SetCrafterPreview(null);
+                inventory.SetCrafterVisibility(false);
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No recipe matched in CheckRecipe(). Result is null.");
+            inventory.SetCrafterPreview(null);
+            inventory.SetCrafterVisibility(false);
+        }
+    }
+
+    public void ConfirmCraft()
+    {
+        Debug.Log("trying to craft!");
+        List<int> selectedIDs = new List<int>();
+
+        foreach (GameObject IDhol in items)
+        {
+            selectedIDs.Add(int.Parse(IDhol.name));
+        }
+
+        RemAfterCraft(selectedIDs);
+
+        GameObject infoHolder = recipePRholder.transform.GetChild(0).GetChild(0).gameObject;
+        string CRname = infoHolder.name;
+
+        float weight;
+        if (CRname == "Mega Wood")
+        {
+            weight = 5f;
+        }
+        else if (CRname == "Empty Lightbulb")
+        {
+            weight = 0.5f;
+        }
+        else
+        {
+            weight = 1f;
+        }
+        int craftID = UnityEngine.Random.Range(-100000, 100000);
+        _Player.AddToInventory(CRname, weight, craftID, infoHolder.GetComponent<SpriteRenderer>().sprite);
+
+        inventory.ToggleInventory(true);
+                    
+    }
+
+    public void RemAfterCraft(List<int> IDs)
+    {
+        foreach (int ID in IDs)
+        {
+            //remove from player inventory
+            int index = 0;
+            foreach (int plID in _Player.inventoryIDs)
+            {
+                if (ID == plID)
+                {
+                    Debug.Log(ID);
+                    break;
+                }
+                else
+                {
+                    index++;
+                }
+            }
+            int goodIndex = index;
+            Debug.Log(goodIndex);
+
+            //actually removing
+            //i am slowly losing my sanity
+            RemoveFromPlayerINV(goodIndex);
+
+            //reload the inventory (hopefully this works)
+            inventory.ToggleInventory(false);
+            inventory.ToggleInventory(true);
+        }
+
+    }
+
+    public void RemoveFromPlayerINV(int index)
+    {
+        _Player.inventoryWeights.RemoveAt(index);
+        _Player.inventoryIDs.RemoveAt(index);
+        _Player.inventoryNames.RemoveAt(index);
+        _Player.inventorySprites.RemoveAt(index);
     }
     
 }

@@ -39,27 +39,31 @@ public class ItemClick : MonoBehaviour
 
     private void ShowInInventory()
     {
+        if(!(_Player.inventoryIDs.Count == _Player.inventoryNames.Count) || !( _Player.inventorySprites.Count == _Player.inventoryWeights.Count)){ return; }
         List<int> IDS = _Player.inventoryIDs;
 
         int ThisID = int.Parse(transform.parent.gameObject.name);
 
-        int i = 0;
-        int thisIndex = 0;
-        foreach (int ID in IDS)
-        {
-            if (ID == ThisID)
-            {
-                thisIndex = i;
+        // int i = 0;
+        // int thisIndex = 0;
+        // foreach (int ID in IDS)
+        // {
+        //     if (ID == ThisID)
+        //     {
+        //         thisIndex = i;
 
-                Debug.Log(thisIndex);
-                break;
-            }
-            else
-            {
-                i++;
-            }
+        //         Debug.Log(thisIndex);
+        //         break;
+        //     }
+        //     else
+        //     {
+        //         i++;
+        //     }
 
-        }
+        // }
+        int thisIndex = _Player.inventoryIDs.IndexOf(ThisID);
+        if (thisIndex < 0) return;
+
         Sprite sprite = _Player.inventorySprites[thisIndex];
         string name = _Player.inventoryNames[thisIndex];
         float weight = _Player.inventoryWeights[thisIndex];
@@ -75,6 +79,8 @@ public class ItemClick : MonoBehaviour
         {
             return;
         }
+
+        inventory.SetCrafterVisibility(false);
         if (!craftSelected)
         {
             uGUI.color = Color.coral;

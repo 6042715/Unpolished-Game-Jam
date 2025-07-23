@@ -12,6 +12,7 @@ public class FullInventory : MonoBehaviour
     public GameObject entry;
     public GameObject container;
     public GameObject details;
+    public GameObject crafterPreview;
 
     public bool isOpen = false;
     public List<GameObject> children = new List<GameObject>();
@@ -25,6 +26,7 @@ public class FullInventory : MonoBehaviour
     private TextMeshProUGUI previewName;
     private TextMeshProUGUI previewWeight;
     private TextMeshProUGUI preiewID;
+    private Image crafterPreviewIMG;
 
     public bool craftMode = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -36,6 +38,7 @@ public class FullInventory : MonoBehaviour
         rect = container.GetComponent<RectTransform>();
         ENrect = GetComponent<RectTransform>();
         grid = container.GetComponent<GridLayoutGroup>();
+        crafterPreviewIMG = crafterPreview.GetComponent<Image>();
 
         foreach (Transform child in transform)
         {
@@ -52,8 +55,8 @@ public class FullInventory : MonoBehaviour
         previewWeight = detailGOBs[2].GetComponent<TextMeshProUGUI>();
         preiewID = detailGOBs[3].GetComponent<TextMeshProUGUI>();
 
-        if(!isOpen){ ToggleInventory(false); }
-        
+        if (!isOpen) { ToggleInventory(false); }
+
     }
 
     // Update is called once per frame
@@ -91,6 +94,7 @@ public class FullInventory : MonoBehaviour
 
     public void ToggleInventory(bool toggle)
     {
+        crafter.ResetAll();
         foreach (GameObject child in children)
         {
             crafter.ResetAll();
@@ -134,5 +138,14 @@ public class FullInventory : MonoBehaviour
         previewWeight.text = ((float)MathF.Round(weight, 2)).ToString() + "KG";
         preiewID.text = ID.ToString();
 
+    }
+
+    public void SetCrafterPreview(Sprite sprite)
+    {
+        crafterPreviewIMG.sprite = sprite;
+    }
+    public void SetCrafterVisibility(bool toggle)
+    {
+        crafterPreviewIMG.enabled = toggle;
     }
 }
