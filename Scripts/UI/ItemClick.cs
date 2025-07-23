@@ -71,26 +71,27 @@ public class ItemClick : MonoBehaviour
 
     private void AddToCrafter()
     {
-        if (inventory.craftMode)
+        if (inventory.craftMode == false)
         {
-            if (!craftSelected)
-            {
-                uGUI.color = Color.coral;
-                image.color = Color.coral;
+            return;
+        }
+        if (!craftSelected)
+        {
+            uGUI.color = Color.coral;
+            image.color = Color.coral;
 
-                crafter.StrippedAdd(gameObject.transform.parent.gameObject);
+            crafter.StrippedAdd(gameObject.transform.parent.gameObject);
 
-                craftSelected = true;
-            }
-            else
-            {
-                uGUI.color = defaultColor;
-                image.color = Color.white;
+            craftSelected = true;
+        }
+        else
+        {
+            uGUI.color = defaultColor;
+            image.color = Color.white;
 
-                crafter.DefaultRemove(gameObject.transform.parent.gameObject);
+            crafter.DefaultRemove(gameObject.transform.parent.gameObject);
 
-                craftSelected = false;
-            }
+            craftSelected = false;
         }
     }
 

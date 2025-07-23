@@ -26,7 +26,7 @@ public class FullInventory : MonoBehaviour
     private TextMeshProUGUI previewWeight;
     private TextMeshProUGUI preiewID;
 
-    public bool craftMode = true;
+    public bool craftMode = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
