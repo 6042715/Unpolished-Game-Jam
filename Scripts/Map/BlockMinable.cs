@@ -364,6 +364,15 @@ public class BlockMinable : MonoBehaviour
                             }
                         }
                     }
+                    else if (TSname == "Cobblestone")
+                    {
+                        if (UnityEngine.Random.Range(0, 10) == 5)
+                        {
+                            int itemID = UnityEngine.Random.Range(-100000, -1000);
+
+                            playerSCR.AddToInventory("Coal", RandomWeight(0.5f, 1.5f), itemID, textureHolder.itemTextures[13]);
+                        }
+                    }
 
                     playerSCR.AddToInventory(weightName + " " + TSname, weight, thisID, oreImage);
 

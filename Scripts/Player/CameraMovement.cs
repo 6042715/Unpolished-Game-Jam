@@ -28,44 +28,71 @@ public class CameraMovement : MonoBehaviour
     }
 
     // Update is called once per frame
+    // void Update()
+    // {
+
+    //     if (movement.timeFromGround > 1.75f)
+    //     {
+    //         shouldZoom = true;
+    //         if (shouldZoom)
+    //         {
+    //             float targetFOV = 20f + (movement.timeFromGround * 1.5f) ;
+    //             TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
+
+    //             if (TScamera.orthographicSize == targetFOV)
+    //             {
+    //                 shouldZoom = false;
+    //             }
+    //         }
+
+    //     }
+
+
+    //     // if (specialFollow)
+    //     // {
+    //     //     cameraPos = new Vector3(transform.position.x, camHeight, transform.position.z);
+    //     //     transform.position = Vector3.Lerp(transform.position, cameraPos, LerpSpeed * Time.deltaTime);
+    //     // }
+    //     if (player != null)
+    //     {
+    //         float targetY = specialFollow ? camHeight : player.transform.position.y + cameraYOffset;
+    //         cameraPos = new Vector3(player.transform.position.x, targetY, transform.position.z);
+    //         transform.position = Vector3.Lerp(transform.position, cameraPos, LerpSpeed * Time.deltaTime);
+    //     }
+
+
+    //     if (shouldZoom)
+    //     {
+    //         float targetFOV = 10f;
+    //         TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
+
+    //         if (TScamera.orthographicSize == targetFOV)
+    //         {
+    //             shouldZoom = false;
+    //         }
+    //     }
+
+    // }
     void Update()
     {
+        if (player != null)
+        {
+            Vector3 targetPos = new Vector3(player.transform.position.x, player.transform.position.y + cameraYOffset, transform.position.z);
+            transform.position = Vector3.Lerp(transform.position, targetPos, LerpSpeed * Time.deltaTime);
+        }
 
         if (movement.timeFromGround > 1.75f)
         {
-            shouldZoom = true;
-            if (shouldZoom)
-            {
-                float targetFOV = 20f + (movement.timeFromGround * 1.5f) ;
-                TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
-
-                if (TScamera.orthographicSize == targetFOV)
-                {
-                    shouldZoom = false;
-                }
-            }
-        
+            float targetFOV = 20f + (movement.timeFromGround * 1.5f);
+            TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
         }
-
-
-        if (specialFollow)
-        {
-            cameraPos = new Vector3(transform.position.x, camHeight, transform.position.z);
-            transform.position = Vector3.Lerp(transform.position, cameraPos, LerpSpeed * Time.deltaTime);
-        }
-
-        if (shouldZoom)
+        else
         {
             float targetFOV = 10f;
             TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
-
-            if (TScamera.orthographicSize == targetFOV)
-            {
-                shouldZoom = false;
-            }
         }
-        
     }
+
     public void ZoomOut()
     {
         shouldZoom = true;

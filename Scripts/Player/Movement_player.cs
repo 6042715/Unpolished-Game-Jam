@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mono.Cecil.Cil;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Movement_player : MonoBehaviour
 {
@@ -44,6 +46,21 @@ public class Movement_player : MonoBehaviour
     public GameObject mapTile;
     private Animator animator;
     public float mineSpeed = 1;
+    public GameObject depthMeterHolder;
+    private TextMeshProUGUI depthMeter;
+    private float startHeight;
+    private float curHeight;
+    public GameObject returnToSurfaceButtonGOB;
+    public Button returnToSurfaceButton;
+    private Vector2 startPos;
+    private float startGrav;
+    public GameObject returnsLeftCounterGOB;
+    private TextMeshProUGUI returnsLeftCounter;
+    public GameObject returnPCSGOB;
+    private ParticleSystem returnPCS;
+    [SerializeField] private string startText;
+    [SerializeField] private bool shouldReturn = false;
+    [SerializeField] private int returnsLeft = 3;
     [SerializeField] private bool RecentlyMined = false;
     [SerializeField] private bool hasTouchedOtherGround = false;
     [SerializeField] public float timeFromGround;
@@ -53,6 +70,7 @@ public class Movement_player : MonoBehaviour
     public List<float> inventoryWeights = new List<float>();
     public List<int> inventoryIDs = new List<int>();
     public List<Sprite> inventorySprites = new List<Sprite>();
+
     // private bool shouldJump = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -62,12 +80,16 @@ public class Movement_player : MonoBehaviour
         notifs = FindFirstObjectByType<Notifications>();
         inventory = FindAnyObjectByType<Inventory>();
         blockMinable = mapTile.GetComponent<BlockMinable>();
+        returnToSurfaceButton = returnToSurfaceButtonGOB.GetComponent<Button>();
+        returnsLeftCounter = returnsLeftCounterGOB.GetComponent<TextMeshProUGUI>();
+        returnPCS = returnPCSGOB.GetComponent<ParticleSystem>();
 
         rb = GetComponent<Rigidbody2D>();
         col2 = GetComponent<Collider2D>();
         SPRenderer = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
+        depthMeter = depthMeterHolder.GetComponent<TextMeshProUGUI>();
 
         lineRenderer = lineRenderOBJ.GetComponent<LineRenderer>();
 
@@ -85,6 +107,16 @@ public class Movement_player : MonoBehaviour
 
         originalEyePos = eyeTarget.transform.localPosition;
         flippedEyePos = new Vector2(-originalEyePos.x, originalEyePos.y);
+
+        startHeight = transform.position.y;
+        startPos = transform.position;
+
+        startGrav = rb.gravityScale;
+        startText = returnsLeftCounter.text;
+
+        returnPCS.Stop();
+
+        returnToSurfaceButton.onClick.AddListener(ReturnToSurface);
 
     }
     void OnDrawGizmosSelected()
@@ -142,14 +174,14 @@ public class Movement_player : MonoBehaviour
             // SPRenderer.color = Color.yellow;
         }
 
-        if (timeFromGround > 0.6)
-        {
-            camMov.specialFollow = false;
-        }
-        else
-        {
-            camMov.specialFollow = true;
-        }
+        // if (timeFromGround > 0.6)
+        // {
+        //     camMov.specialFollow = false;
+        // }
+        // else
+        // {
+        //     camMov.specialFollow = true;
+        // }
 
         if (timeFromGround > 1.0f)
         {
@@ -173,6 +205,20 @@ public class Movement_player : MonoBehaviour
         else
         {
             animator.SetBool("shouldMove", false);
+        }
+
+        if (shouldReturn)
+        {
+            transform.position = Vector2.Lerp(transform.position, startPos, 1.5f * Time.deltaTime);
+            if (transform.position.y >= startHeight - 0.1f)
+            {
+                shouldReturn = false;
+                col2.enabled = true;
+                rb.gravityScale = startGrav;
+
+                SPRenderer.color = new Color(SPRenderer.color.r, SPRenderer.color.g, SPRenderer.color.b, 1f);
+                returnPCS.Stop();
+            }
         }
 
     }
@@ -236,7 +282,10 @@ public class Movement_player : MonoBehaviour
                 lineRenderer.enabled = false;
             }
         }
-        
+
+        curHeight = startHeight - (startHeight - transform.position.y);
+        depthMeter.text = curHeight + "M";
+
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -384,6 +433,31 @@ public class Movement_player : MonoBehaviour
         if (Physics.Raycast(ray, out hit))
             Debug.Log("found " + hit.collider.gameObject.name + " at distance: " + hit.distance);
         return hit.collider.gameObject;
+    }
+
+    public void ReturnToSurface()
+    {
+        if (transform.position.y < startHeight && returnsLeft > 0)
+        {
+            if (!shouldReturn)
+            {
+                StartCoroutine(WaitForTeleport(0.1f));
+            }
+        }
+    }
+
+    private IEnumerator WaitForTeleport(float delay)
+    {
+        returnsLeft--;
+        returnsLeftCounter.text = startText + "(" + returnsLeft.ToString() + "X)";
+
+        yield return new WaitForSecondsRealtime(delay);
+        SPRenderer.color = new Color(SPRenderer.color.r, SPRenderer.color.g, SPRenderer.color.b, 0.5f);
+
+        shouldReturn = true;
+        col2.enabled = false;
+        rb.gravityScale = 0f;
+        returnPCS.Play();
     }
     
 }

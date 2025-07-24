@@ -253,6 +253,10 @@ public class Crafter : MonoBehaviour
         {
             weight = 0.6f;
         }
+        else if (CRname == "Refined Iron")
+        {
+            weight = 1f;
+        }
         else
         {
             weight = 1f;
