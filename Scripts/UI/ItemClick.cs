@@ -9,6 +9,7 @@ public class ItemClick : MonoBehaviour
     private Button button;
     public FullInventory inventory;
     public Crafter crafter;
+    public Recipes recipes;
     public Movement_player _Player;
     private TextMeshProUGUI uGUI;
     private Image image;
@@ -20,6 +21,7 @@ public class ItemClick : MonoBehaviour
         inventory = FindFirstObjectByType<FullInventory>();
         _Player = FindFirstObjectByType<Movement_player>();
         crafter = FindFirstObjectByType<Crafter>();
+        recipes = FindAnyObjectByType<Recipes>();
 
         button = GetComponent<Button>();
         uGUI = transform.parent.GetComponentInChildren<TextMeshProUGUI>();
@@ -89,6 +91,8 @@ public class ItemClick : MonoBehaviour
             crafter.StrippedAdd(gameObject.transform.parent.gameObject);
 
             craftSelected = true;
+
+            recipes.CheckRecipe();
         }
         else
         {
@@ -98,6 +102,8 @@ public class ItemClick : MonoBehaviour
             crafter.DefaultRemove(gameObject.transform.parent.gameObject);
 
             craftSelected = false;
+
+            recipes.CheckRecipe();
         }
     }
 

@@ -225,6 +225,8 @@ public class Crafter : MonoBehaviour
 
     public void ConfirmCraft()
     {
+        if(!recipe.foundRecipe){ return; }
+
         Debug.Log("trying to craft!");
         List<int> selectedIDs = new List<int>();
 
@@ -247,6 +249,10 @@ public class Crafter : MonoBehaviour
         {
             weight = 0.5f;
         }
+        else if (CRname == "Glass Knife")
+        {
+            weight = 0.6f;
+        }
         else
         {
             weight = 1f;
@@ -254,48 +260,85 @@ public class Crafter : MonoBehaviour
         int craftID = UnityEngine.Random.Range(-100000, 100000);
         _Player.AddToInventory(CRname, weight, craftID, infoHolder.GetComponent<SpriteRenderer>().sprite);
 
+        recipe.CheckRecipe();
+
+        if (recipe.foundRecipe == true)
+        {
+            _Player.AddToInventory(CRname, weight, craftID, infoHolder.GetComponent<SpriteRenderer>().sprite);
+        }
+
+        // recipe.CheckRecipe();
         inventory.ToggleInventory(true);
                     
     }
 
+    // public void RemAfterCraft(List<int> IDs)
+    // {
+    //     foreach (int ID in IDs)
+    //     {
+    //         //remove from player inventory
+    //         int index = 0;
+    //         foreach (int plID in _Player.inventoryIDs)
+    //         {
+    //             if (ID == plID)
+    //             {
+    //                 Debug.Log(ID);
+    //                 break;
+    //             }
+    //             else
+    //             {
+    //                 index++;
+    //             }
+    //         }
+    //         int goodIndex = index;
+    //         Debug.Log(goodIndex);
+
+    //         //actually removing
+    //         //i am slowly losing my sanity
+    //         RemoveFromPlayerINV(goodIndex);
+
+    //         //reload the inventory (hopefully this works)
+    //         inventory.ToggleInventory(false);
+    //         inventory.ToggleInventory(true);
+    //     }
+
+    // }
     public void RemAfterCraft(List<int> IDs)
     {
+        if (!recipe.foundRecipe) return;
+
+        List<int> indicesToRemove = new List<int>();
+
         foreach (int ID in IDs)
         {
-            //remove from player inventory
-            int index = 0;
-            foreach (int plID in _Player.inventoryIDs)
+            int index = _Player.inventoryIDs.IndexOf(ID);
+            if (index >= 0)
             {
-                if (ID == plID)
-                {
-                    Debug.Log(ID);
-                    break;
-                }
-                else
-                {
-                    index++;
-                }
+                indicesToRemove.Add(index);
             }
-            int goodIndex = index;
-            Debug.Log(goodIndex);
-
-            //actually removing
-            //i am slowly losing my sanity
-            RemoveFromPlayerINV(goodIndex);
-
-            //reload the inventory (hopefully this works)
-            inventory.ToggleInventory(false);
-            inventory.ToggleInventory(true);
         }
 
+        indicesToRemove.Sort((a, b) => b.CompareTo(a));
+
+        foreach (int index in indicesToRemove)
+        {
+            RemoveFromPlayerINV(index);
+        }
+
+        inventory.ToggleInventory(false);
+        inventory.ToggleInventory(true);
     }
+
 
     public void RemoveFromPlayerINV(int index)
     {
+        if (!recipe.foundRecipe) { return; }
+
         _Player.inventoryWeights.RemoveAt(index);
         _Player.inventoryIDs.RemoveAt(index);
         _Player.inventoryNames.RemoveAt(index);
         _Player.inventorySprites.RemoveAt(index);
+
     }
     
 }

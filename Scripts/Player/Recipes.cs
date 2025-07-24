@@ -12,7 +12,7 @@ public class Recipes : MonoBehaviour
 {
     public List<Recipe> recipes = new List<Recipe>();
     public List<string> outputs = new List<string>();
-    [SerializeField] private bool foundRecipe = false;
+    public bool foundRecipe = false;
     private Crafter crafter;
     private itemTextureHolder textureHolder;
     private FullInventory inventory;
@@ -54,7 +54,9 @@ public class Recipes : MonoBehaviour
                     inventory.SetCrafterVisibility(true);
                     return Result;
                 }
+                foundRecipe = false;
             }
+            foundRecipe = false;
         }
 
         foundRecipe = false;

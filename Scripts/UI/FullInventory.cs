@@ -18,6 +18,7 @@ public class FullInventory : MonoBehaviour
     public List<GameObject> children = new List<GameObject>();
     [SerializeField] private List<GameObject> detailGOBs = new List<GameObject>();
     private Movement_player TSPlayer;
+    private Recipes recipes;
     private RectTransform rect;
     private RectTransform ENrect;
     private GridLayoutGroup grid;
@@ -34,6 +35,7 @@ public class FullInventory : MonoBehaviour
     {
         TSPlayer = FindFirstObjectByType<Movement_player>();
         crafter = FindFirstObjectByType<Crafter>();
+        recipes = FindFirstObjectByType<Recipes>();
 
         rect = container.GetComponent<RectTransform>();
         ENrect = GetComponent<RectTransform>();
@@ -95,6 +97,8 @@ public class FullInventory : MonoBehaviour
     public void ToggleInventory(bool toggle)
     {
         crafter.ResetAll();
+        recipes.CheckRecipe();
+        
         foreach (GameObject child in children)
         {
             crafter.ResetAll();
