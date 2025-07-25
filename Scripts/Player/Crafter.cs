@@ -172,7 +172,7 @@ public class Crafter : MonoBehaviour
 
             if (inventory.container.transform.childCount > items.Count)
             {
-                inventory.ToggleInventory(true);
+                inventory.ToggleInventory(false);
             }
 
             ResetAll();
@@ -257,12 +257,17 @@ public class Crafter : MonoBehaviour
         {
             weight = 1f;
         }
+        else if (CRname == "Dense Stone")
+        {
+            weight = 5f;
+        }
         else
         {
             weight = 1f;
         }
         int craftID = UnityEngine.Random.Range(-100000, 100000);
         _Player.AddToInventory(CRname, weight, craftID, infoHolder.GetComponent<SpriteRenderer>().sprite);
+        _Player.itemsCrafted += 1;
 
         recipe.CheckRecipe();
 

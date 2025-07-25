@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Mono.Cecil.Cil;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -58,6 +57,10 @@ public class Movement_player : MonoBehaviour
     private TextMeshProUGUI returnsLeftCounter;
     public GameObject returnPCSGOB;
     private ParticleSystem returnPCS;
+    private GameManager game;
+    public GameObject finalLayer;
+    private float finalLayerHeight;
+    private bool hasEnded = false;
     [SerializeField] private string startText;
     [SerializeField] private bool shouldReturn = false;
     [SerializeField] private int returnsLeft = 3;
@@ -71,6 +74,12 @@ public class Movement_player : MonoBehaviour
     public List<int> inventoryIDs = new List<int>();
     public List<Sprite> inventorySprites = new List<Sprite>();
 
+    //stats
+    public int blocksMined = 0;
+    public float timeSpent = 0f;
+    public int itemsCrafted = 0;
+    public float totalAirtime = 0f;
+
     // private bool shouldJump = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -79,6 +88,8 @@ public class Movement_player : MonoBehaviour
         camMov = FindFirstObjectByType<CameraMovement>();
         notifs = FindFirstObjectByType<Notifications>();
         inventory = FindAnyObjectByType<Inventory>();
+        game = FindFirstObjectByType<GameManager>();
+
         blockMinable = mapTile.GetComponent<BlockMinable>();
         returnToSurfaceButton = returnToSurfaceButtonGOB.GetComponent<Button>();
         returnsLeftCounter = returnsLeftCounterGOB.GetComponent<TextMeshProUGUI>();
@@ -101,6 +112,7 @@ public class Movement_player : MonoBehaviour
         audioSource.resource = windClip;
 
         StartCoroutine(AirTimer());
+        StartCoroutine(GeneralTimer());
 
         LaserLines = new Transform[2];
         SetupLine(LaserLines);
@@ -110,6 +122,7 @@ public class Movement_player : MonoBehaviour
 
         startHeight = transform.position.y;
         startPos = transform.position;
+        finalLayerHeight = finalLayer.transform.position.y;
 
         startGrav = rb.gravityScale;
         startText = returnsLeftCounter.text;
@@ -286,6 +299,17 @@ public class Movement_player : MonoBehaviour
         curHeight = startHeight - (startHeight - transform.position.y);
         depthMeter.text = curHeight + "M";
 
+        if (transform.position.y < finalLayerHeight + 1)
+        {
+            if (game.hasFoundGoal == true && !hasEnded)
+            {
+                SPRenderer.enabled = false;
+                game.ShowEndScreen();
+
+                hasEnded = true;
+            }
+        }
+
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -331,6 +355,8 @@ public class Movement_player : MonoBehaviour
     {
         RecentlyMined = true;
         StartCoroutine(resetRecentlyMined());
+
+        blocksMined += 1;
 
         inventoryNames.Add(name);
         inventoryWeights.Add(weight);
@@ -392,6 +418,8 @@ public class Movement_player : MonoBehaviour
             {
                 isRecording = true;
                 timeFromGround += 0.1f;
+                totalAirtime += 0.1f;
+
 
                 Debug.Log(rb.linearVelocityY);
                 if (Mathf.Abs(rb.linearVelocityY) < 1.5f)
@@ -405,9 +433,19 @@ public class Movement_player : MonoBehaviour
                 {
                     lastJumpTime = timeFromGround;
                 }
+
                 isRecording = false;
                 timeFromGround = 0f;
             }
+        }
+    }
+
+    private IEnumerator GeneralTimer()
+    {
+        while (true)
+        {
+            timeSpent += 0.1f;
+            yield return new WaitForSecondsRealtime(0.1f);
         }
     }
 
@@ -459,5 +497,4 @@ public class Movement_player : MonoBehaviour
         rb.gravityScale = 0f;
         returnPCS.Play();
     }
-    
 }

@@ -6,4 +6,5 @@ public class itemTextureHolder : MonoBehaviour
     public List<Sprite> itemTextures = new List<Sprite>();
     public List<Sprite> craftingSprites = new List<Sprite>();
     public List<AudioClip> audioClips = new List<AudioClip>();
+    public List<Sprite> oreSprites = new List<Sprite>();
 }

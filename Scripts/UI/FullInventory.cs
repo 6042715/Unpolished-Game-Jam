@@ -19,6 +19,7 @@ public class FullInventory : MonoBehaviour
     [SerializeField] private List<GameObject> detailGOBs = new List<GameObject>();
     private Movement_player TSPlayer;
     private Recipes recipes;
+    private itemTextureHolder textureHolder;
     private RectTransform rect;
     private RectTransform ENrect;
     private GridLayoutGroup grid;
@@ -27,15 +28,27 @@ public class FullInventory : MonoBehaviour
     private TextMeshProUGUI previewName;
     private TextMeshProUGUI previewWeight;
     private TextMeshProUGUI preiewID;
+    private TextMeshProUGUI previewMix;
     private Image crafterPreviewIMG;
+    private ShowRecipes showRecipes;
+    private GameManager game;
+
+    public Sprite emptySprite;
 
     public bool craftMode = false;
+
+    private Color tranColor = new Color(1f, 1f, 1f, 0f);
+    private Color defColor = new Color(1f, 1f, 1f, 1f);
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         TSPlayer = FindFirstObjectByType<Movement_player>();
         crafter = FindFirstObjectByType<Crafter>();
         recipes = FindFirstObjectByType<Recipes>();
+        textureHolder = FindFirstObjectByType<itemTextureHolder>();
+        game = FindFirstObjectByType<GameManager>();
+
+        showRecipes = game.recipeShowHolder.GetComponent<ShowRecipes>();
 
         rect = container.GetComponent<RectTransform>();
         ENrect = GetComponent<RectTransform>();
@@ -57,8 +70,9 @@ public class FullInventory : MonoBehaviour
         previewWeight = detailGOBs[2].GetComponent<TextMeshProUGUI>();
         preiewID = detailGOBs[3].GetComponent<TextMeshProUGUI>();
 
-        if (!isOpen) { ToggleInventory(false); }
+        ToggleInventory(false);
 
+        previewIMG.sprite = emptySprite;
     }
 
     // Update is called once per frame
@@ -66,9 +80,13 @@ public class FullInventory : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
+
             if (!isOpen)
             {
                 ToggleInventory(true);
+                showRecipes.LoadRecipes(false);
+
+                previewIMG.color = tranColor;
                 isOpen = true;
             }
             else
@@ -98,7 +116,7 @@ public class FullInventory : MonoBehaviour
     {
         crafter.ResetAll();
         recipes.CheckRecipe();
-        
+
         foreach (GameObject child in children)
         {
             crafter.ResetAll();
@@ -136,6 +154,7 @@ public class FullInventory : MonoBehaviour
 
     public void ShowDetails(Sprite TSsprite, string TSname, float weight, int ID)
     {
+        previewIMG.color = defColor;        
 
         previewIMG.sprite = TSsprite;
         previewName.text = TSname;
