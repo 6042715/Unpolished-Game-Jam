@@ -64,7 +64,15 @@ public class Movement_player : MonoBehaviour
     private bool hasEnded = false;
     public Gradient deathCurve;
     private Vector2 deathSequencePos;
-    private bool shouldLock;
+    public bool shouldLock;
+    public GameObject deathLasers;
+    private Transform[] deathLaserTran;
+    private LineRenderer deathLines;
+    public GameObject deathLaserOrigin;
+    private float lastTargetX;
+    public GameObject explodePlayer;
+    public AudioClip explosionClip;
+    [SerializeField] private float laserMarginX;
     [SerializeField] private string startText;
     [SerializeField] private bool shouldReturn = false;
     [SerializeField] private int returnsLeft = 3;
@@ -101,6 +109,7 @@ public class Movement_player : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         col2 = GetComponent<Collider2D>();
+        deathLines = deathLasers.GetComponent<LineRenderer>();
         SPRenderer = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
@@ -134,6 +143,14 @@ public class Movement_player : MonoBehaviour
         returnPCS.Stop();
 
         returnToSurfaceButton.onClick.AddListener(ReturnToSurface);
+
+        deathLines.enabled = false;
+
+        //----------------------------------
+        deathLaserTran = new Transform[2];
+
+        deathLaserTran[0] = transform;
+        deathLaserTran[1] = deathLaserOrigin.transform;
 
     }
     void OnDrawGizmosSelected()
@@ -241,6 +258,20 @@ public class Movement_player : MonoBehaviour
         if (shouldLock)
         {
             transform.position = Vector2.Lerp(transform.position, deathSequencePos, 3f * Time.deltaTime);
+
+            deathLaserTran[0] = transform;
+
+            for (int i = 0; i < deathLaserTran.Length; i++)
+            {
+                deathLines.SetPosition(i, deathLaserTran[i].position);
+                if (i == 0)
+                {
+                    float targetX = Mathf.Lerp(lastTargetX, deathLaserTran[i].position.x + laserMarginX, Time.deltaTime * 6f);
+                    deathLines.SetPosition(i, new Vector2(targetX, deathLaserTran[i].position.y));
+                    lastTargetX = targetX;
+                }
+            }
+
         }
     }
     void FixedUpdate()
@@ -322,7 +353,7 @@ public class Movement_player : MonoBehaviour
                 var ColOLifetime = returnPCS.colorOverLifetime;
                 ColOLifetime.color = deathCurve;
 
-                StartCoroutine(WaitForLockPos(10f));
+                StartCoroutine(WaitForLockPos(7.5f));
                 hasEnded = true;
             }
         }
@@ -522,5 +553,64 @@ public class Movement_player : MonoBehaviour
         yield return new WaitForSecondsRealtime(delay);
         deathSequencePos = transform.position;
         shouldLock = true;
+
+        deathLines.enabled = true;
+        StartCoroutine(RandomLaserMove());
+
+        camMov.isTheEnd = true;
+    }
+
+    private IEnumerator RandomLaserMove()
+    {
+        while (shouldLock)
+        {
+            float newWait = UnityEngine.Random.Range(0.2f, 0.8f);
+            yield return new WaitForSecondsRealtime(newWait);
+
+            laserMarginX = UnityEngine.Random.Range(-0.5f, 0.5f);
+        }
+    }
+
+    public void WaitForExplode(float delay)
+    {
+        StartCoroutine(Explode(delay));
+    }
+
+    private IEnumerator Explode(float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        GameObject explosion = Instantiate(explodePlayer, transform.position, Quaternion.Euler(0f, 0f, 0f));
+        explosion.GetComponent<SpriteRenderer>().sortingOrder = 200;
+
+        StartCoroutine(AfterExplosion());
+        StartCoroutine(ExplosionSoundLoop(explosion));
+    }
+
+    private IEnumerator AfterExplosion()
+    {
+        yield return new WaitForSecondsRealtime(1f);
+        SPRenderer.enabled = false;
+
+        yield return new WaitForSecondsRealtime(1f);
+        game.ShowEndScreen(true);
+    }
+
+    private IEnumerator ExplosionSoundLoop(GameObject explosion)
+    {
+        AudioSource audioSource2 = explosion.GetComponent<AudioSource>();
+
+        int i = 0;
+        while (true)
+        {
+            audioSource2.PlayOneShot(explosionClip);
+            yield return new WaitForSecondsRealtime(1f);
+
+            i++;
+
+            if (i == 3)
+            {
+                audioSource2.volume = 0.4f;
+            }
+        }
     }
 }

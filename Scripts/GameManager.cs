@@ -157,12 +157,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void ShowEndScreen()
+    public void ShowEndScreen(bool failed = false)
     {
-        StartCoroutine(WaitEndScreen());
+        StartCoroutine(WaitEndScreen(failed));
     }
 
-    IEnumerator WaitEndScreen()
+    IEnumerator WaitEndScreen(bool failed)
     {
         yield return new WaitForSecondsRealtime(0.75f);
 
@@ -170,16 +170,57 @@ public class GameManager : MonoBehaviour
 
         endScreen.SetActive(true);
 
-        finalStats.text =
-        "---------- \n" +
-        "You took: " + MathF.Round(_Player.timeSpent, 2) + " seconds \n" +
-        "You mined: " + _Player.blocksMined + " blocks \n" +
-        "You crafted: " + _Player.itemsCrafted + " item(s) \n" +
-        "Your total airtime was: " + MathF.Round(_Player.totalAirtime, 2) + " seconds \n" +
-        "Goal difficulty: " + GoalChosenDiff + "/10 \n" +
-        "\n" +
-        "Final Score: " + MathF.Round(endScore, 2) + " points \n" +
-        "----------";
+        if (!failed)
+        {
+            finalStats.text =
+                "---------- \n" +
+                "You took: " + MathF.Round(_Player.timeSpent, 2) + " seconds \n" +
+                "You mined: " + _Player.blocksMined + " blocks \n" +
+                "You crafted: " + _Player.itemsCrafted + " item(s) \n" +
+                "Your total airtime was: " + MathF.Round(_Player.totalAirtime, 2) + " seconds \n" +
+                "Goal difficulty: " + GoalChosenDiff + "/10 \n" +
+                "\n" +
+                "Final Score: " + MathF.Round(endScore, 2) + " points \n" +
+                "----------";
+        }
+        else
+        {
+            TextMeshProUGUI upperText = finalStats.gameObject.transform.parent.GetChild(0).GetComponent<TextMeshProUGUI>();
+            upperText.color = Color.red;
+            upperText.text = "YOU FAILED (miserably!!!)";
+
+            int j = 0;
+            foreach (Transform child in buttonHolder.transform)
+            {
+                TextMeshProUGUI buttonTS = child.GetChild(0).GetComponent<TextMeshProUGUI>();
+                buttonTS.color = Color.red;
+
+                if (j == 0)
+                {
+                    buttonTS.text = "DO YOUR BEST THIS TIME PLSSS";
+                }
+                else if (j == 1)
+                {
+                    buttonTS.text = "YOU SHOULD TAKE A BREAK!!!";
+                }
+                
+                j++;
+            }
+
+            finalStats.color = Color.red;
+            finalStats.text =
+                "---------- \n" +
+                "You took: " + MathF.Round(_Player.timeSpent, 2) + " seconds TOO LONG \n" +
+                "You mined: " + _Player.blocksMined + " blocks AND STILL COULDN'T GET THE ITEM \n" +
+                "You crafted: " + _Player.itemsCrafted + " item(s) (EXCEPT THE GOAL-ITEM) \n" +
+                "Your total airtime was: " + MathF.Round(_Player.totalAirtime, 2) + " seconds NOT DOING SHIT \n" +
+                "Goal difficulty: " + GoalChosenDiff * 100 + "/10 \n" +
+                "\n" +
+                "Final Score: " + -(MathF.Round(endScore, 2) * 100) + " points \n" +
+                "PLEASE GET BETTER AT THIS MAN, YOU SUCK \n" +
+                "----------";
+        
+        }
 
         int i = 0;
         foreach (Transform child in buttonHolder.transform)

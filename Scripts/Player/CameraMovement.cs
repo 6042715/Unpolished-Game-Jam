@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,6 +16,11 @@ public class CameraMovement : MonoBehaviour
     private Camera TScamera;
     public bool shouldZoom = false;
     public bool specialFollow = false;
+    public bool isTheEnd = false;
+    private float goalEndZoom = 5f;
+    private float goalEndZoom2 = 2f;
+    private bool isTheEnd2 = false;
+    private bool startedCoroutine = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -75,21 +82,40 @@ public class CameraMovement : MonoBehaviour
     // }
     void Update()
     {
-        if (player != null)
+        if (player != null && !isTheEnd && !isTheEnd2)
         {
             Vector3 targetPos = new Vector3(player.transform.position.x, player.transform.position.y + cameraYOffset, transform.position.z);
             transform.position = Vector3.Lerp(transform.position, targetPos, LerpSpeed * Time.deltaTime);
         }
 
-        if (movement.timeFromGround > 1.75f)
+        if (movement.timeFromGround > 1.75f && !isTheEnd && !isTheEnd2)
         {
             float targetFOV = 20f + (movement.timeFromGround * 1.5f);
             TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
         }
         else
         {
-            float targetFOV = 10f;
-            TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
+            if (!isTheEnd && !isTheEnd2)
+            {
+                float targetFOV = 10f;
+                TScamera.orthographicSize = Mathf.Lerp(TScamera.orthographicSize, targetFOV, Time.deltaTime * 2f);
+            }
+        }
+
+        if (isTheEnd)
+        {
+            float curTarZoom = Mathf.Lerp(TScamera.orthographicSize, goalEndZoom, Time.deltaTime * 2f);
+            TScamera.orthographicSize = curTarZoom;
+
+            if (!startedCoroutine)
+            {
+                StartCoroutine(SecondEndEffect(2f));
+            }
+        }
+        if (isTheEnd2)
+        {
+            float curTarZoom = Mathf.Lerp(TScamera.orthographicSize, goalEndZoom2, Time.deltaTime * 1.5f);
+            TScamera.orthographicSize = curTarZoom;
         }
     }
 
@@ -101,5 +127,21 @@ public class CameraMovement : MonoBehaviour
     {
         camHeight = posY + cameraYOffset;
         // transform.position = new Vector3(transform.position.x, camHeight, transform.position.z);
+    }
+
+    private IEnumerator SecondEndEffect(float delay)
+    {
+        startedCoroutine = true;
+        yield return new WaitForSecondsRealtime(delay);
+        isTheEnd2 = true;
+        isTheEnd = false;
+
+        StartCoroutine(WaitForPlayerEnd());
+    }
+
+    private IEnumerator WaitForPlayerEnd()
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        movement.WaitForExplode(1f);
     }
 }

@@ -39,7 +39,7 @@ public class BlockMinable : MonoBehaviour
     public GameObject thisBlock;
     public bool aboutToBreak = false;
     private bool isPlayerNear;
-    private bool shouldRender = true;
+    private bool shouldRender = false;
     private itemTextureHolder textureHolder;
     public bool isWoodBroken = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -366,7 +366,7 @@ public class BlockMinable : MonoBehaviour
                     }
                     else if (TSname == "Cobblestone")
                     {
-                        if (UnityEngine.Random.Range(0, 10) == 5)
+                        if (UnityEngine.Random.Range(0, 5) == 2)
                         {
                             int itemID = UnityEngine.Random.Range(-100000, -1000);
 
