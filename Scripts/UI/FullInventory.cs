@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Mathematics;
@@ -128,33 +129,15 @@ public class FullInventory : MonoBehaviour
             {
                 Destroy(child.gameObject);
             }
+            StartCoroutine(loadTiles());
 
-            int i = 0;
-            foreach (int ID in TSPlayer.inventoryIDs)
-            {
-                GameObject entry2 = Instantiate(entry);
-
-                entry2.name = ID.ToString();
-
-                entry2.transform.SetParent(container.transform);
-
-                entry2.GetComponentInChildren<Image>().sprite = TSPlayer.inventorySprites[i];
-                entry2.GetComponentInChildren<TextMeshProUGUI>().text = TSPlayer.inventoryNames[i];
-
-                i++;
-
-            }
-            int rows = Mathf.CeilToInt(TSPlayer.inventoryIDs.Count / 4f);
-            Debug.Log(rows);
-
-            rect.sizeDelta = new Vector2(rect.sizeDelta.x, rows * grid.cellSize.y);
 
         }
     }
 
     public void ShowDetails(Sprite TSsprite, string TSname, float weight, int ID)
     {
-        previewIMG.color = defColor;        
+        previewIMG.color = defColor;
 
         previewIMG.sprite = TSsprite;
         previewName.text = TSname;
@@ -170,5 +153,34 @@ public class FullInventory : MonoBehaviour
     public void SetCrafterVisibility(bool toggle)
     {
         crafterPreviewIMG.enabled = toggle;
+    }
+
+    private IEnumerator loadTiles()
+    {
+        int i = 0;
+        foreach (int ID in TSPlayer.inventoryIDs)
+        {
+            GameObject entry2 = Instantiate(entry);
+
+            entry2.name = ID.ToString();
+
+            entry2.transform.SetParent(container.transform);
+
+            entry2.GetComponentInChildren<Image>().sprite = TSPlayer.inventorySprites[i];
+            entry2.GetComponentInChildren<TextMeshProUGUI>().text = TSPlayer.inventoryNames[i];
+
+            i++;
+
+            if (i % 3 == 0)
+            {
+                yield return new WaitForEndOfFrame();
+                game.toggleDebugLight(1);
+            }
+
+        }
+        int rows = Mathf.CeilToInt(TSPlayer.inventoryIDs.Count / 4f);
+        Debug.Log(rows);
+
+        rect.sizeDelta = new Vector2(rect.sizeDelta.x, rows * grid.cellSize.y);
     }
 }

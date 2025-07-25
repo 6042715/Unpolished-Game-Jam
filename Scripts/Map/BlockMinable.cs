@@ -39,7 +39,7 @@ public class BlockMinable : MonoBehaviour
     public GameObject thisBlock;
     public bool aboutToBreak = false;
     private bool isPlayerNear;
-    private bool shouldRender = false;
+    private bool shouldRender = true;
     private itemTextureHolder textureHolder;
     public bool isWoodBroken = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created

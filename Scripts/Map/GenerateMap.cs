@@ -2,6 +2,37 @@ using Unity.Mathematics;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Burst;
+
+[BurstCompile]
+public struct NoiseJob : IJobParallelFor
+{
+    public int width;
+    public int height;
+    public float xOrg;
+    public float yOrg;
+    public float scale;
+
+    [WriteOnly]
+    public NativeArray<float> results;
+
+    public void Execute(int index)
+    {
+        int x = index % width;
+        int y = index / width;
+
+        float xCoord = xOrg + ((float)x / width) * scale;
+        float yCoord = yOrg + ((float)y / height) * scale;
+
+        float sample = noise.cnoise(new float2(xCoord, yCoord)); // noise.snoise if you prefer
+        sample = math.unlerp(-1f, 1f, sample); // Normalize -1 to 1 → 0 to 1
+
+        results[index] = sample;
+    }
+}
+
 
 public class GenerateMap : MonoBehaviour
 {
@@ -51,24 +82,48 @@ public class GenerateMap : MonoBehaviour
         GameObject mapHolder = new GameObject("MapHolder");
         mapHolder.transform.SetParent(gameObject.transform);
 
-        float[,] sampleValues = new float[mapWidth, mapHeight];
-        for (int y = 0; y < noise.height; y++)
-        {
-            for (int x = 0; x < noise.width; x++)
-            {
-                float xCoord = xOrg + x / (float)noise.width * scale;
-                float yCoord = yOrg + y / (float)noise.height * scale;
-                float sample = Mathf.PerlinNoise(xCoord, yCoord);
-                sampleValues[x, y] = sample;
+        // float[,] sampleValues = new float[mapWidth, mapHeight];
+        // for (int y = 0; y < noise.height; y++)
+        // {
+        //     for (int x = 0; x < noise.width; x++)
+        //     {
+        //         float xCoord = xOrg + x / (float)noise.width * scale;
+        //         float yCoord = yOrg + y / (float)noise.height * scale;
+        //         float sample = Mathf.PerlinNoise(xCoord, yCoord);
+        //         sampleValues[x, y] = sample;
 
-                pix[y * noise.width + x] = new Color(sample > 0.6f ? 1f : 0f, sample > 0.6f ? 1f : 0f, sample > 0.6f ? 1f : 0f);
-            }
-        }
+        //         pix[y * noise.width + x] = new Color(sample > 0.6f ? 1f : 0f, sample > 0.6f ? 1f : 0f, sample > 0.6f ? 1f : 0f);
+        //     }
+        // }
+        NativeArray<float> sampleValues = new NativeArray<float>(mapWidth * mapHeight, Allocator.TempJob);
+
+        NoiseJob job = new NoiseJob
+            {
+                width = mapWidth,
+                height = mapHeight,
+                xOrg = xOrg,
+                yOrg = yOrg,
+                scale = scale,
+                results = sampleValues
+            };
+
+        JobHandle handle = job.Schedule(sampleValues.Length, 64);
+        handle.Complete();
+
 
         noise.SetPixels(pix);
         noise.Apply();
 
-        StartCoroutine(Generate(sampleValues, mapHolder));
+        float[,] copied = new float[mapWidth, mapHeight];
+        for (int y = 0; y < mapHeight; y++)
+        {
+            for (int x = 0; x < mapWidth; x++)
+            {
+                copied[x, y] = sampleValues[y * mapWidth + x];
+            }
+        }
+        sampleValues.Dispose();
+        StartCoroutine(Generate(copied, mapHolder)); 
 
         // for (int y = 0; y < noise.height; y++)
         // {
@@ -138,7 +193,7 @@ public class GenerateMap : MonoBehaviour
     private IEnumerator Generate(float[,] sampleValues, GameObject mapHolder)
     {
         if (!shouldGenerate) { yield break; }
-        ;
+        
         for (int y = 0; y < noise.height; y++)
         {
             for (int x = 0; x < noise.width; x++)
@@ -227,7 +282,7 @@ public class GenerateMap : MonoBehaviour
         }
 
         generated = true;
-        
+
     }
 
     public void playRockNoise()

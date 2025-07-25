@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class Movement_player : MonoBehaviour
@@ -61,6 +62,9 @@ public class Movement_player : MonoBehaviour
     public GameObject finalLayer;
     private float finalLayerHeight;
     private bool hasEnded = false;
+    public Gradient deathCurve;
+    private Vector2 deathSequencePos;
+    private bool shouldLock;
     [SerializeField] private string startText;
     [SerializeField] private bool shouldReturn = false;
     [SerializeField] private int returnsLeft = 3;
@@ -234,6 +238,10 @@ public class Movement_player : MonoBehaviour
             }
         }
 
+        if (shouldLock)
+        {
+            transform.position = Vector2.Lerp(transform.position, deathSequencePos, 3f * Time.deltaTime);
+        }
     }
     void FixedUpdate()
     {
@@ -306,6 +314,15 @@ public class Movement_player : MonoBehaviour
                 SPRenderer.enabled = false;
                 game.ShowEndScreen();
 
+                hasEnded = true;
+            }
+            else if (!game.hasFoundGoal && !hasEnded)
+            {
+                StartCoroutine(WaitForTeleport(0.5f));
+                var ColOLifetime = returnPCS.colorOverLifetime;
+                ColOLifetime.color = deathCurve;
+
+                StartCoroutine(WaitForLockPos(10f));
                 hasEnded = true;
             }
         }
@@ -420,6 +437,7 @@ public class Movement_player : MonoBehaviour
                 timeFromGround += 0.1f;
                 totalAirtime += 0.1f;
 
+                game.toggleDebugLight(2);
 
                 Debug.Log(rb.linearVelocityY);
                 if (Mathf.Abs(rb.linearVelocityY) < 1.5f)
@@ -453,6 +471,7 @@ public class Movement_player : MonoBehaviour
     {
         yield return new WaitForSecondsRealtime(0.1f);
         RecentlyMined = false;
+        game.toggleDebugLight(3);
     }
 
     private float GetTotalWeight(List<float> list)
@@ -496,5 +515,12 @@ public class Movement_player : MonoBehaviour
         col2.enabled = false;
         rb.gravityScale = 0f;
         returnPCS.Play();
+    }
+
+    private IEnumerator WaitForLockPos(float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        deathSequencePos = transform.position;
+        shouldLock = true;
     }
 }
