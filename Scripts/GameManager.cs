@@ -118,6 +118,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void CheckGoalManually(Sprite sprite)
+    {
+        if (sprite == GoalChosenSprite)
+        {
+            hasFoundGoal = true;
+            FoundGoal();
+            StartCoroutine(CycleText(2f));
+        }
+    }
+
     private IEnumerator CheckerLoop(float delay)
     {
         while (!hasFoundGoal)

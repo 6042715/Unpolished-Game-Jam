@@ -8,6 +8,7 @@ public class ItemClick : MonoBehaviour
 {
     private Button button;
     public FullInventory inventory;
+    private Inventory inventory2;
     public Crafter crafter;
     public Recipes recipes;
     public Movement_player _Player;
@@ -41,7 +42,8 @@ public class ItemClick : MonoBehaviour
 
     private void ShowInInventory()
     {
-        if(!(_Player.inventoryIDs.Count == _Player.inventoryNames.Count) || !( _Player.inventorySprites.Count == _Player.inventoryWeights.Count)){ return; }
+        if (!(_Player.inventoryIDs.Count == _Player.inventoryNames.Count) || !(_Player.inventorySprites.Count == _Player.inventoryWeights.Count)) { return; }
+
         List<int> IDS = _Player.inventoryIDs;
 
         int ThisID = int.Parse(transform.parent.gameObject.name);
@@ -72,6 +74,8 @@ public class ItemClick : MonoBehaviour
 
         Debug.Log(sprite.name + " " + name + " " + weight);
         inventory.ShowDetails(sprite, name, weight, ThisID);
+
+        inventory.PlayUIsound(inventory.clickSound);
 
     }
 

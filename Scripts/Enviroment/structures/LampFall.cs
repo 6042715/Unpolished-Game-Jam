@@ -12,6 +12,7 @@ public class LampFall : MonoBehaviour
     public List<Sprite> itemSprites = new List<Sprite>();
     public AudioClip glassBreak;
     private AudioSource audioSource;
+    private bool ready = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -23,16 +24,25 @@ public class LampFall : MonoBehaviour
 
         rb2d.simulated = false;
         col2.enabled = false;
+
+        StartCoroutine(WaitForReady());
     }
 
     void OnTransformParentChanged()
     {
-        rb2d.simulated = true;
-        col2.enabled = true;
+        if (ready)
+        {
+            rb2d.simulated = true;
+            col2.enabled = true;
 
-        rb2d.AddTorque(Random.Range(-5f, 5f));
+            rb2d.AddTorque(Random.Range(-5f, 5f));
 
-        active = true;
+            active = true;
+        }
+        else
+        {
+            return;
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -66,8 +76,14 @@ public class LampFall : MonoBehaviour
         rb2d.simulated = false;
         col2.enabled = false;
         GetComponent<SpriteRenderer>().enabled = false;
-        
+
         yield return new WaitForSecondsRealtime(0.5f);
         Destroy(gameObject);
+    }
+
+    private IEnumerator WaitForReady()
+    {
+        yield return new WaitForSecondsRealtime(0.1f);
+        ready = true;
     }
 }

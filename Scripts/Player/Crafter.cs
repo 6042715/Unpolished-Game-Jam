@@ -9,6 +9,7 @@ public class Crafter : MonoBehaviour
 {
     private FullInventory inventory;
     private Recipes recipe;
+    private Notifications notifications;
     public List<GameObject> items = new List<GameObject>();
     public List<string> itemNames = new List<string>();
     public List<string> realNames = new List<string>();
@@ -24,12 +25,15 @@ public class Crafter : MonoBehaviour
     private float baseY;
     private Vector2 baseScale;
 
+    private GameManager game;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _Player = FindFirstObjectByType<Movement_player>();
         inventory = FindFirstObjectByType<FullInventory>();
         recipe = FindFirstObjectByType<Recipes>();
+        notifications = FindFirstObjectByType<Notifications>();
+        game = FindFirstObjectByType<GameManager>();
 
         confirmButton = confirmCraftHolder.GetComponent<Button>();
 
@@ -156,6 +160,10 @@ public class Crafter : MonoBehaviour
         if (collision.gameObject.name == "CrafterRadius")
         {
             inventory.craftMode = true;
+
+            inventory.PlayUIsound(inventory.craftOn);
+            notifications.ShowCraftStatus(true);
+
             Debug.ClearDeveloperConsole();
             Debug.Log("craft on");
         }
@@ -165,6 +173,8 @@ public class Crafter : MonoBehaviour
     {
         if (collision.gameObject.name == "CrafterRadius")
         {
+            inventory.craftMode = false;
+
             foreach (GameObject item in items)
             {
                 item.transform.GetChild(2).GetComponent<ItemClick>().ExternalReset();
@@ -175,8 +185,10 @@ public class Crafter : MonoBehaviour
                 inventory.ToggleInventory(false);
             }
 
+            inventory.PlayUIsound(inventory.craftOff);
+            notifications.ShowCraftStatus(false);
+
             ResetAll();
-            inventory.craftMode = false;
             Debug.ClearDeveloperConsole();
             Debug.Log("craft off");
 
@@ -267,9 +279,15 @@ public class Crafter : MonoBehaviour
         }
         int craftID = UnityEngine.Random.Range(-100000, 100000);
         _Player.AddToInventory(CRname, weight, craftID, infoHolder.GetComponent<SpriteRenderer>().sprite);
+        game.CheckGoalManually(infoHolder.GetComponent<SpriteRenderer>().sprite);
+
         _Player.itemsCrafted += 1;
 
+        inventory.PlayUIsound(inventory.craftSound);
+
         recipe.CheckRecipe();
+
+        inventory.SetCrafterVisibility(false);
 
         if (recipe.foundRecipe == true)
         {

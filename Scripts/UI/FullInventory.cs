@@ -33,6 +33,7 @@ public class FullInventory : MonoBehaviour
     private Image crafterPreviewIMG;
     private ShowRecipes showRecipes;
     private GameManager game;
+    private AudioSource audioSource;
 
     public Sprite emptySprite;
 
@@ -40,6 +41,11 @@ public class FullInventory : MonoBehaviour
 
     private Color tranColor = new Color(1f, 1f, 1f, 0f);
     private Color defColor = new Color(1f, 1f, 1f, 1f);
+
+    public AudioClip clickSound;
+    public AudioClip craftSound;
+    public AudioClip craftOn;
+    public AudioClip craftOff;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -55,6 +61,8 @@ public class FullInventory : MonoBehaviour
         ENrect = GetComponent<RectTransform>();
         grid = container.GetComponent<GridLayoutGroup>();
         crafterPreviewIMG = crafterPreview.GetComponent<Image>();
+        audioSource = GetComponent<AudioSource>();
+        
 
         foreach (Transform child in transform)
         {
@@ -182,5 +190,10 @@ public class FullInventory : MonoBehaviour
         Debug.Log(rows);
 
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, rows * grid.cellSize.y);
+    }
+
+    public void PlayUIsound(AudioClip audioClip)
+    {
+        audioSource.PlayOneShot(audioClip);
     }
 }

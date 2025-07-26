@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
@@ -72,6 +73,12 @@ public class Movement_player : MonoBehaviour
     private float lastTargetX;
     public GameObject explodePlayer;
     public AudioClip explosionClip;
+    private AudioSource rocketSoundSRC;
+    private AudioSource mineSoundSRC;
+    public AudioClip returnToSurfaceAudio;
+    public AudioClip jumpAudio;
+    public AudioClip mineAudio;
+    [SerializeField] private bool isPlayingMineAudio = false;
     [SerializeField] private float laserMarginX;
     [SerializeField] private string startText;
     [SerializeField] private bool shouldReturn = false;
@@ -106,6 +113,7 @@ public class Movement_player : MonoBehaviour
         returnToSurfaceButton = returnToSurfaceButtonGOB.GetComponent<Button>();
         returnsLeftCounter = returnsLeftCounterGOB.GetComponent<TextMeshProUGUI>();
         returnPCS = returnPCSGOB.GetComponent<ParticleSystem>();
+        rocketSoundSRC = eyeTarget.GetComponent<AudioSource>();
 
         rb = GetComponent<Rigidbody2D>();
         col2 = GetComponent<Collider2D>();
@@ -114,6 +122,7 @@ public class Movement_player : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         animator = GetComponent<Animator>();
         depthMeter = depthMeterHolder.GetComponent<TextMeshProUGUI>();
+        mineSoundSRC = groundCheck.GetComponent<AudioSource>();
 
         lineRenderer = lineRenderOBJ.GetComponent<LineRenderer>();
 
@@ -126,6 +135,7 @@ public class Movement_player : MonoBehaviour
 
         StartCoroutine(AirTimer());
         StartCoroutine(GeneralTimer());
+        StartCoroutine(PitchIncrease());
 
         LaserLines = new Transform[2];
         SetupLine(LaserLines);
@@ -145,13 +155,26 @@ public class Movement_player : MonoBehaviour
         returnToSurfaceButton.onClick.AddListener(ReturnToSurface);
 
         deathLines.enabled = false;
-
-        //----------------------------------
         deathLaserTran = new Transform[2];
 
         deathLaserTran[0] = transform;
         deathLaserTran[1] = deathLaserOrigin.transform;
 
+        // depthColors[0] = new Color(0.1f, 0.1f, 0.1f);
+        // depthColors[1] = new Color(0.05f, 0.05f, 0.05f);
+        // depthColors[2] = new Color(0.02f, 0.02f, 0.02f);
+
+        // for (int i = 0; i < 4; i++)
+        // {
+        //     if (i == 3)
+        //     {
+        //         depthColors[i] = Color.black;
+        //         break;
+        //     }
+        //     float thisColor = 0.5f / (i + 1);
+        //     depthColors[i] = new Color(thisColor, thisColor, thisColor);
+        // }
+        
     }
     void OnDrawGizmosSelected()
     {
@@ -219,26 +242,36 @@ public class Movement_player : MonoBehaviour
 
         if (timeFromGround > 1.0f)
         {
-            if (!audioSource.isPlaying)
-            {
-                audioSource.Play();
-            }
+            // if (!audioSource.isPlaying)
+            // {
+            //     audioSource.Play();
+            // }
         }
         else
         {
-            if (audioSource.isPlaying)
-            {
-                audioSource.Stop();
-            }
+            // if (audioSource.isPlaying)
+            // {
+            //     audioSource.Stop();
+            // }
         }
 
         if (direction != 0f)
         {
             animator.SetBool("shouldMove", true);
+
+            if (!rocketSoundSRC.isPlaying)
+            {
+                rocketSoundSRC.Play();
+            }
         }
         else
         {
             animator.SetBool("shouldMove", false);
+
+            if (rocketSoundSRC.isPlaying)
+            {
+                rocketSoundSRC.Stop();
+            }
         }
 
         if (shouldReturn)
@@ -320,6 +353,8 @@ public class Movement_player : MonoBehaviour
         {
             if (!lineRenderer.enabled)
             {
+                mineSoundSRC.Play();
+                isPlayingMineAudio = true;
                 lineRenderer.enabled = true;
             }
             for (int i = 0; i < LaserLines.Length; i++)
@@ -331,6 +366,8 @@ public class Movement_player : MonoBehaviour
         {
             if (lineRenderer.enabled)
             {
+                mineSoundSRC.Stop();
+                isPlayingMineAudio = false;
                 lineRenderer.enabled = false;
             }
         }
@@ -364,8 +401,8 @@ public class Movement_player : MonoBehaviour
     {
         if (collision.gameObject)
         {
-            var PCSmain = TparticleSystem.main;
-            PCSmain.startColor = collision.gameObject.GetComponent<SpriteRenderer>().color;
+            // var PCSmain = TparticleSystem.main;
+            // PCSmain.startColor = collision.gameObject.GetComponent<SpriteRenderer>().color;
         }
         if (collision.gameObject.tag == "Ground" && transform.position.y < startPlatform.transform.position.y)
         {
@@ -396,6 +433,7 @@ public class Movement_player : MonoBehaviour
 
     void jump()
     {
+        audioSource.PlayOneShot(jumpAudio);
         rb.AddForce(new Vector2(rb.linearVelocity.x, jumpStrength));
     }
 
@@ -542,6 +580,9 @@ public class Movement_player : MonoBehaviour
         yield return new WaitForSecondsRealtime(delay);
         SPRenderer.color = new Color(SPRenderer.color.r, SPRenderer.color.g, SPRenderer.color.b, 0.5f);
 
+        audioSource.priority = 255;
+        audioSource.PlayOneShot(returnToSurfaceAudio);
+
         shouldReturn = true;
         col2.enabled = false;
         rb.gravityScale = 0f;
@@ -613,4 +654,45 @@ public class Movement_player : MonoBehaviour
             }
         }
     }
+
+    private IEnumerator PitchIncrease()
+    {
+        while (isPlayingMineAudio)
+        {
+            float curPitch = Mathf.Lerp(1f, 2f, Time.deltaTime * 1.5f);
+            mineSoundSRC.pitch = curPitch;
+
+            yield return null;
+        }
+    }
+
+    // private IEnumerator CheckLightLevel()
+    // {
+    //     yield return new WaitForSecondsRealtime(0.1f);
+
+    //     while (true && depthColors.Count == 4)
+    //     {
+    //         float posY = transform.position.y;
+
+    //         if (posY > -200f && posY <= -120f)
+    //         {
+    //             Camera.main.backgroundColor = depthColors[2];
+    //         }
+    //         else if (posY > -120f && posY <= -80f)
+    //         {
+    //             Camera.main.backgroundColor = depthColors[1];
+    //         }
+    //         else if (posY > -80f && posY <= -40f)
+    //         {
+    //             Camera.main.backgroundColor = depthColors[0];
+    //         }
+    //         else if (posY > -40f)
+    //         {
+    //             Camera.main.backgroundColor = depthColors[3];
+    //         }
+
+    //         yield return new WaitForSecondsRealtime(0.5f);
+    //     }
+    // }
+
 }

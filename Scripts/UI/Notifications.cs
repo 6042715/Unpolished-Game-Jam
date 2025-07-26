@@ -14,8 +14,9 @@ public class Notifications : MonoBehaviour
 
     public AudioClip notifySound;
 
-    public List<String> facts = new List<string>();
+    public List<string> facts = new List<string>();
     public List<Sprite> dollarDude = new List<Sprite>();
+    public List<Sprite> dollarDudeCraft = new List<Sprite>();
 
 
     private TextMeshProUGUI uGUI;
@@ -96,8 +97,26 @@ public class Notifications : MonoBehaviour
                 StartCoroutine(NotifEffect());
             }
             yield return new WaitForSecondsRealtime(factCooldown);
-            
+
         }
 
+    }
+
+    public void ShowCraftStatus(bool toggle)
+    {
+        if (!toggle)
+        {
+            uGUI.text = "Craft mode: OFF";
+            image.sprite = dollarDudeCraft[1];
+
+            StartCoroutine(NotifEffect());
+        }
+        else
+        {
+            uGUI.text = "Craft mode: ON";
+            image.sprite = dollarDudeCraft[0];
+
+            StartCoroutine(NotifEffect());
+        }
     }
 }
