@@ -268,7 +268,7 @@ public class GenerateMap : MonoBehaviour
         Vector2 mapCenterOffset = new(mapSize.x / 2f, mapSize.y);
         mapHolder.transform.position = -(Vector3)mapCenterOffset;
 
-        int amountOfHouses = UnityEngine.Random.Range(1, 10);
+        int amountOfHouses = UnityEngine.Random.Range(12, 24);
 
         for (int i = 0; i < amountOfHouses; i++)
         {
