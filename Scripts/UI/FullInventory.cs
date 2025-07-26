@@ -34,6 +34,7 @@ public class FullInventory : MonoBehaviour
     private ShowRecipes showRecipes;
     private GameManager game;
     private AudioSource audioSource;
+    private ShopStand shopStand;
 
     public Sprite emptySprite;
 
@@ -46,6 +47,9 @@ public class FullInventory : MonoBehaviour
     public AudioClip craftSound;
     public AudioClip craftOn;
     public AudioClip craftOff;
+    public AudioClip buyItem;
+    public AudioClip woodTap;
+    public AudioClip ballTap;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -54,6 +58,7 @@ public class FullInventory : MonoBehaviour
         recipes = FindFirstObjectByType<Recipes>();
         textureHolder = FindFirstObjectByType<itemTextureHolder>();
         game = FindFirstObjectByType<GameManager>();
+        shopStand = FindFirstObjectByType<ShopStand>();
 
         showRecipes = game.recipeShowHolder.GetComponent<ShowRecipes>();
 
@@ -123,13 +128,20 @@ public class FullInventory : MonoBehaviour
 
     public void ToggleInventory(bool toggle)
     {
+        // if(shopStand.sellingMode == true || shopStand.isStoreOpen == true){ return;  }
+        if (!toggle && (shopStand.sellingMode || shopStand.isStoreOpen)) return;
+
         crafter.ResetAll();
         recipes.CheckRecipe();
 
         foreach (GameObject child in children)
         {
             crafter.ResetAll();
-            child.SetActive(toggle);
+
+            if (child.name != "SellValueHolder")
+            {
+                child.SetActive(toggle);
+            }
         }
         if (toggle)
         {
@@ -192,8 +204,14 @@ public class FullInventory : MonoBehaviour
         rect.sizeDelta = new Vector2(rect.sizeDelta.x, rows * grid.cellSize.y);
     }
 
-    public void PlayUIsound(AudioClip audioClip)
+    public void PlayUIsound(AudioClip audioClip, bool randomPitch = false)
     {
+        audioSource.pitch = 1f;
+
+        if (randomPitch)
+        {
+            audioSource.pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+        }
         audioSource.PlayOneShot(audioClip);
     }
 }

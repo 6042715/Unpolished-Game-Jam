@@ -330,9 +330,17 @@ public class Crafter : MonoBehaviour
     //     }
 
     // }
-    public void RemAfterCraft(List<int> IDs)
+    public void RemAfterCraft(List<int> IDs, bool seller = false)
     {
-        if (!recipe.foundRecipe) return;
+        // if (!recipe.foundRecipe && !seller) return;
+        // if (!seller)
+        // {
+        //     if (!recipe.foundRecipe)
+        //     {
+        //         return;
+        //     }
+        // }
+        if (!seller && !recipe.foundRecipe) { return; }
 
         List<int> indicesToRemove = new List<int>();
 
@@ -349,7 +357,7 @@ public class Crafter : MonoBehaviour
 
         foreach (int index in indicesToRemove)
         {
-            RemoveFromPlayerINV(index);
+            RemoveFromPlayerINV(index, seller);
         }
 
         inventory.ToggleInventory(false);
@@ -357,9 +365,9 @@ public class Crafter : MonoBehaviour
     }
 
 
-    public void RemoveFromPlayerINV(int index)
+    public void RemoveFromPlayerINV(int index, bool seller = false)
     {
-        if (!recipe.foundRecipe) { return; }
+        if (!seller && !recipe.foundRecipe) { return; }
 
         _Player.inventoryWeights.RemoveAt(index);
         _Player.inventoryIDs.RemoveAt(index);

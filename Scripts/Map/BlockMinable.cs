@@ -320,7 +320,7 @@ public class BlockMinable : MonoBehaviour
 
                                 if (lastLetter == "1")
                                 {
-                                    playerSCR.AddToInventory("" + "Red wine", 0.33f, itemID, textureHolder.itemTextures[0]);
+                                    playerSCR.AddToInventory("" + "Red Wine", 0.33f, itemID, textureHolder.itemTextures[0]);
                                 }
                                 else if (lastLetter == "2")
                                 {

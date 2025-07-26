@@ -11,11 +11,17 @@ public class ItemClick : MonoBehaviour
     private Inventory inventory2;
     public Crafter crafter;
     public Recipes recipes;
+    public ShopStand shopStand;
     public Movement_player _Player;
     private TextMeshProUGUI uGUI;
     private Image image;
     private bool craftSelected = false;
+    private bool sellSelected = false;
     private Color defaultColor;
+
+    private Sprite thisSprite;
+    private float thisWeight;
+    private int thisID;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -23,6 +29,7 @@ public class ItemClick : MonoBehaviour
         _Player = FindFirstObjectByType<Movement_player>();
         crafter = FindFirstObjectByType<Crafter>();
         recipes = FindAnyObjectByType<Recipes>();
+        shopStand = FindFirstObjectByType<ShopStand>();
 
         button = GetComponent<Button>();
         uGUI = transform.parent.GetComponentInChildren<TextMeshProUGUI>();
@@ -30,6 +37,7 @@ public class ItemClick : MonoBehaviour
 
         button.onClick.AddListener(ShowInInventory);
         button.onClick.AddListener(AddToCrafter);
+        button.onClick.AddListener(AddToSeller);
 
         defaultColor = uGUI.color;
     }
@@ -46,7 +54,7 @@ public class ItemClick : MonoBehaviour
 
         List<int> IDS = _Player.inventoryIDs;
 
-        int ThisID = int.Parse(transform.parent.gameObject.name);
+        thisID = int.Parse(transform.parent.gameObject.name);
 
         // int i = 0;
         // int thisIndex = 0;
@@ -65,15 +73,15 @@ public class ItemClick : MonoBehaviour
         //     }
 
         // }
-        int thisIndex = _Player.inventoryIDs.IndexOf(ThisID);
+        int thisIndex = _Player.inventoryIDs.IndexOf(thisID);
         if (thisIndex < 0) return;
 
-        Sprite sprite = _Player.inventorySprites[thisIndex];
+        thisSprite = _Player.inventorySprites[thisIndex];
         string name = _Player.inventoryNames[thisIndex];
-        float weight = _Player.inventoryWeights[thisIndex];
+        thisWeight = _Player.inventoryWeights[thisIndex];
 
-        Debug.Log(sprite.name + " " + name + " " + weight);
-        inventory.ShowDetails(sprite, name, weight, ThisID);
+        Debug.Log(thisSprite.name + " " + name + " " + thisWeight);
+        inventory.ShowDetails(thisSprite, name, thisWeight, thisID);
 
         inventory.PlayUIsound(inventory.clickSound);
 
@@ -109,6 +117,33 @@ public class ItemClick : MonoBehaviour
 
             recipes.CheckRecipe();
         }
+    }
+
+    private void AddToSeller()
+    {
+        if (shopStand.sellingMode == false)
+        {
+            return;
+        }
+
+        if (!sellSelected)
+        {
+            uGUI.color = Color.lightGreen;
+            image.color = Color.green;
+
+            shopStand.CalculateValue(thisSprite, thisWeight, true, thisID);
+            sellSelected = true;
+        }
+        else
+        {
+            uGUI.color = defaultColor;
+            image.color = Color.white;
+
+            shopStand.CalculateValue(thisSprite, thisWeight, false, thisID);
+            sellSelected = false;
+        }
+        
+
     }
 
     public void ExternalReset()

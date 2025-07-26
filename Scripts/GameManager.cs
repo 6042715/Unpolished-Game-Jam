@@ -44,12 +44,22 @@ public class GameManager : MonoBehaviour
     public GameObject lightsHolder;
     private List<Image> lightIMG = new List<Image>();
     [SerializeField] private List<bool> lightStatus = new List<bool>();
+
+    public List<Sprite> shopItemSprites = new List<Sprite>();
+    public List<string> shopItemNames = new List<string>();
+    public int storeSize = 9;
+
+    public List<Sprite> chosenItemSprites = new List<Sprite>();
+    public List<string> chosenItemNames = new List<string>();
+
+    private ShopStand shopStand;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _Player = FindFirstObjectByType<Movement_player>();
-        showRecipes = recipeShowHolder.GetComponent<ShowRecipes>();
+        shopStand = FindFirstObjectByType<ShopStand>();
 
+        showRecipes = recipeShowHolder.GetComponent<ShowRecipes>();
         GoalNotifTMP = GoalNotifHolderGOB.GetComponent<TextMeshProUGUI>();
 
         audioSource = GetComponent<AudioSource>();
@@ -78,6 +88,8 @@ public class GameManager : MonoBehaviour
         lightIMG[1].color = Color.red;
         lightIMG[2].color = Color.green;
         lightIMG[3].color = Color.yellow;
+
+        GenerateShopItems();
 
     }
 
@@ -213,7 +225,7 @@ public class GameManager : MonoBehaviour
                 {
                     buttonTS.text = "YOU SHOULD TAKE A BREAK!!!";
                 }
-                
+
                 j++;
             }
 
@@ -229,7 +241,7 @@ public class GameManager : MonoBehaviour
                 "Final Score: " + -(MathF.Round(endScore, 2) * 100) + " points \n" +
                 "PLEASE GET BETTER AT THIS MAN, YOU SUCK \n" +
                 "----------";
-        
+
         }
 
         int i = 0;
@@ -329,5 +341,20 @@ public class GameManager : MonoBehaviour
                 lightStatus[3] = true;
             }
         }
+    }
+
+    private void GenerateShopItems()
+    {
+        for (int i = 0; i < storeSize; i++)
+        {
+            int index = UnityEngine.Random.Range(0, shopItemSprites.Count);
+            Sprite TSsprite = shopItemSprites[index];
+            string TSname = shopItemNames[index];
+
+            chosenItemNames.Add(TSname);
+            chosenItemSprites.Add(TSsprite);
+        }
+
+        shopStand.GenerateItemsInShop(chosenItemSprites, chosenItemNames);
     }
 }

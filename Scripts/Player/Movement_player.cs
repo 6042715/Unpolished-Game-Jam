@@ -78,6 +78,9 @@ public class Movement_player : MonoBehaviour
     public AudioClip returnToSurfaceAudio;
     public AudioClip jumpAudio;
     public AudioClip mineAudio;
+    public float playerMoney = 0;
+    public GameObject moneyDisplay;
+    private TextMeshProUGUI moneyText;
     [SerializeField] private bool isPlayingMineAudio = false;
     [SerializeField] private float laserMarginX;
     [SerializeField] private string startText;
@@ -123,6 +126,7 @@ public class Movement_player : MonoBehaviour
         animator = GetComponent<Animator>();
         depthMeter = depthMeterHolder.GetComponent<TextMeshProUGUI>();
         mineSoundSRC = groundCheck.GetComponent<AudioSource>();
+        moneyText = moneyDisplay.GetComponent<TextMeshProUGUI>();
 
         lineRenderer = lineRenderOBJ.GetComponent<LineRenderer>();
 
@@ -174,7 +178,9 @@ public class Movement_player : MonoBehaviour
         //     float thisColor = 0.5f / (i + 1);
         //     depthColors[i] = new Color(thisColor, thisColor, thisColor);
         // }
-        
+
+        moneyText.text = playerMoney.ToString();
+
     }
     void OnDrawGizmosSelected()
     {
@@ -694,5 +700,10 @@ public class Movement_player : MonoBehaviour
     //         yield return new WaitForSecondsRealtime(0.5f);
     //     }
     // }
+
+    public void UpdateMoneyDisplay(float increase)
+    {
+        moneyText.text = playerMoney.ToString() + "(+" + increase.ToString() + ")";
+    }
 
 }
